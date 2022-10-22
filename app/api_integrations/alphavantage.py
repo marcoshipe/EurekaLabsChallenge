@@ -5,7 +5,7 @@ from app.api_integrations.api_integration_exceptions import ApiCallException
 from app.config import settings
 
 
-def get_stock_market_data(symbol: str) -> dict:
+def get_stock_market_data(stock_symbol: str) -> dict:
     """ Get stock market data from alpha vantage and return it as a dict with this structure:
     {
         'yyyy-mm-dd': {
@@ -18,14 +18,14 @@ def get_stock_market_data(symbol: str) -> dict:
         ...
     }
 
-    :param symbol: symbol of the stock you want to get the data
+    :param stock_symbol: symbol of the stock you want to get the data
     :return: dict
     """
     response = requests.get(settings.alphavantage_url, params={
         'function': 'TIME_SERIES_DAILY',
         'outputsize': 'compact',
         'apikey': settings.alphavantage_apikey,
-        'symbol': symbol,
+        'symbol': stock_symbol,
     })
 
     if response.status_code != 200:

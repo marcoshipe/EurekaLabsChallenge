@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
+from app.routers import stock_market_data
 
 
 app_description = """
@@ -14,16 +15,12 @@ Get daily time series about a stock
 """
 
 app = FastAPI(title='Eureka Labs Challenge', description=app_description)
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+app.include_router(stock_market_data.router)
 
 
 # Code to remove the 422 response in the docs for specifics endpoints
 def custom_openapi():
-    endpoints_to_remove = []  # TODO: add endpoints here
+    endpoints_to_remove = [('/stock_market_data/{stock_symbol}', 'get')]
     if not app.openapi_schema:
         app.openapi_schema = get_openapi(
             title=app.title,
