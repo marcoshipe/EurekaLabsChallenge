@@ -6,7 +6,7 @@ Problem definition: https://github.com/eurekalabs-io/challenges/blob/main/backen
 
 * Clone the repository:
 
-  > git clone # TODO
+  > git clone git@github.com:marcoshipe/EurekaLabsChallenge.git
 
 * Go to the project folder:
 
