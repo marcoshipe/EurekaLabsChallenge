@@ -7,5 +7,3 @@ ENV PYTHONUNBUFFERED 1
 COPY requirements.txt .
 RUN pip install --root-user-action=ignore --upgrade pip
 RUN pip install --root-user-action=ignore --no-cache-dir --upgrade -r requirements.txt
-
-COPY ./app /app
