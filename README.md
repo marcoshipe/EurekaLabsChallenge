@@ -13,11 +13,7 @@ Problem definition: https://github.com/eurekalabs-io/challenges/blob/main/backen
   > cd EurekaLabsChallenge
 
 * Copy the `env_template` file to `.env` and replace the `REPLACE_WITH_THE_ALPHAVANTAGE_APIKEY` with the real 
- alpha vantage api key
-
-* Build the docker image:
-
-  > docker-compose build
+ alpha vantage api key. It is not mandatory, but you can edit the postgres settings too
 
 * Run the project in a container:
 
@@ -26,3 +22,6 @@ Problem definition: https://github.com/eurekalabs-io/challenges/blob/main/backen
 * To run the tests (with the project container running):
 
   > docker-compose exec app pytest -v
+
+* To read the endpoint documentation and make calls to them (with the project container running): visit the webpage 
+http://127.0.0.1:8080/docs
