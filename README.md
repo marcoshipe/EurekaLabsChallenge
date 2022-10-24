@@ -13,7 +13,7 @@ Problem definition: https://github.com/eurekalabs-io/challenges/blob/main/backen
   > cd EurekaLabsChallenge
 
 * Copy the `env_template` file to `.env` and replace the `REPLACE_WITH_THE_ALPHAVANTAGE_APIKEY` with the real 
- alpha vantage api key. It is not mandatory, but you can edit the postgres settings too
+ alpha vantage api key. It is not mandatory, but you can edit the postgres settings, the SECRET_KEY and the SALT too
 
 * Run the project in a container:
 

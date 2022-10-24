@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     postgres_password: str
     postgres_db: str
     postgres_port: int = 5432
+    secret_key: str
+    salt: str
 
 
 settings = Settings()
