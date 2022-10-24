@@ -17,11 +17,11 @@ Problem definition: https://github.com/eurekalabs-io/challenges/blob/main/backen
 
 * Run the project in a container:
 
-  > docker-compose up -d
+  > docker-compose up app
 
-* To run the tests (with the project container running):
+* To run the tests:
 
-  > docker-compose exec app pytest -v
+  > docker-compose up app_test
 
 * To read the endpoint documentation and make calls to them (with the project container running): visit the webpage 
 http://127.0.0.1:8080/docs

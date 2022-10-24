@@ -1,26 +1,49 @@
 version: "3.8"
 
 services:
-  app:
+  app_template: &app_template
     build: .
-    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; uvicorn app.main:app --host 0.0.0.0 --reload'
     volumes:
       - .:/app
+    env_file:
+      - .env
+
+  app:
+    << : *app_template
+    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; uvicorn app.main:app --host 0.0.0.0 --reload'
     ports:
       - "8080:8000"
     depends_on:
       - db
+
+  app_test:
+    << : *app_template
+    command: bash -c 'while !</dev/tcp/db_test/5432; do sleep 1; done; pytest -v'
+    ports:
+      - "8081:8000"
+    depends_on:
+      - db_test
+
+  db_template: &db_template
+    image: postgres:14.5-alpine
     env_file:
       - .env
 
   db:
-    image: postgres:14.5-alpine
+    << : *db_template
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
       - "5432:5432"
-    env_file:
-      - .env
+
+  db_test:
+    <<: *db_template
+    volumes:
+      - postgres_data_test:/var/lib/postgresql/data/
+    ports:
+      - "5433:5432"
+
 
 volumes:
   postgres_data:
+  postgres_data_test:
