@@ -20,7 +20,7 @@ responses = {
 }
 
 
-@router.post('/', responses=responses)
+@router.post('/', responses=responses, summary='Create User')
 def create_user_api(user: UserSchema, db: Session = Depends(get_db)):
     db_user = get_user_by_email(db, email=user.email)
     if db_user:

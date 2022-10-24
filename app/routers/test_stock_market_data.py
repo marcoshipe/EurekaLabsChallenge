@@ -2,6 +2,10 @@ from unittest import mock
 from fastapi.testclient import TestClient
 from app.main import app
 from app.api_integrations.api_integration_exceptions import ApiCallException
+from app.models.user import User
+
+
+stock_market_data = 'app.routers.stock_market_data'
 
 
 class TestMarketData:
@@ -28,15 +32,31 @@ class TestMarketData:
                 'close_price_diff_with_one_previous_day': '', 'close_price_diff_with_two_previous_days': ''
             }
         }
-        with mock.patch('app.routers.stock_market_data.get_stock_market_data', mock.Mock(return_value=expected_result)):
-            response = self.client.get("/stock_market_data/TEST")
+        user = User(name='name', last_name='last_name', email='email', hashed_api_key='hashed_api_key')
+        with (mock.patch(f'{stock_market_data}.get_stock_market_data', mock.Mock(return_value=expected_result)),
+              mock.patch(f'{stock_market_data}.get_user_by_apikey', mock.Mock(return_value=user))):
+            response = self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test'})
         assert response.status_code == 200
         assert response.json() == expected_result
 
     def test_exception(self):
         exception_message = 'There was an error trying to get the stock data. Try again in a few minutes'
-        with mock.patch('app.routers.stock_market_data.get_stock_market_data',
-                        mock.Mock(side_effect=ApiCallException(exception_message))):
-            response = self.client.get("/stock_market_data/TEST")
+        user = User(name='name', last_name='last_name', email='email', hashed_api_key='hashed_api_key')
+        with (mock.patch(f'{stock_market_data}.get_stock_market_data',
+                         mock.Mock(side_effect=ApiCallException(exception_message))),
+              mock.patch(f'{stock_market_data}.get_user_by_apikey', return_value=user)):
+            response = self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test'})
         assert response.status_code == 503
-        assert response.json() == {'error': exception_message}
+        assert response.json() == {'detail': exception_message}
+
+    @mock.patch(f'{stock_market_data}.get_user_by_apikey', mock.Mock(return_value=None))
+    def test_unauthorized(self):
+        response = self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test'})
+        assert response.status_code == 401
+        assert response.json() == {"detail": "invalid api_key"}
+
+    def test_validation_error(self):
+        response = self.client.get('/stock_market_data/TEST')
+        assert response.status_code == 422
+        assert response.json() == {"detail": [{"loc": ["header", "api-key"], "msg":"field required",
+                                               "type":"value_error.missing"}]}

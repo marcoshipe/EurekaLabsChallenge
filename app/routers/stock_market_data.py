@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Response, status, Path
+from fastapi import APIRouter, Response, status, Path, Depends, Header
+from sqlalchemy.orm import Session
 from app.api_integrations.alphavantage import get_stock_market_data
 from app.api_integrations.api_integration_exceptions import ApiCallException
+from app.crud.crud_user import get_user_by_apikey
+from app.database.database import get_db
 
 
-router = APIRouter(
-    prefix='/stock_market_data',
-    tags=['Stock market data']
-)
+router = APIRouter(prefix='/stock_market_data', tags=['Stock market data'])
 
 responses = {
     200: {
@@ -35,20 +35,29 @@ responses = {
             }
         }}}
     },
+    401: {
+        'description': 'Unauthorized',
+        'content': {'application/json': {'example': {
+            'detail': 'invalid api_key'
+        }}}
+    },
     503: {
         'description': 'Service unavailable',
         'content': {'application/json': {'example': {
-            'error': 'There was an error trying to get the stock data. Try again in a few minutes'
+            'detail': 'There was an error trying to get the stock data. Try again in a few minutes'
         }}}
     },
 }
 
 
-@router.get('/{stock_symbol}', responses=responses)
-def get_stock_market_data_api(response: Response, stock_symbol: str = Path(example='IBM')):
-    # TODO: Add apikey validation
+@router.get('/{stock_symbol}', responses=responses, summary='Get Stock Market Data')
+def get_stock_market_data_api(response: Response, stock_symbol: str = Path(example='IBM'), api_key: str = Header(),
+                              db: Session = Depends(get_db)):
+    if get_user_by_apikey(db, api_key) is None:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return {'detail': 'invalid api_key'}
     try:
         return get_stock_market_data(stock_symbol)
     except ApiCallException as e:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        return {'error': str(e)}
+        return {'detail': str(e)}

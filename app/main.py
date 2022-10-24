@@ -1,7 +1,6 @@
 import sys
 import uvicorn
 from fastapi import FastAPI
-from fastapi.openapi.utils import get_openapi
 from app.routers import stock_market_data, users
 from app.database.database import engine
 from app.database.setup_teardown import setup_db
@@ -23,30 +22,6 @@ if 'pytest' not in sys.modules:
 app = FastAPI(title='Eureka Labs Challenge', description=app_description)
 app.include_router(stock_market_data.router)
 app.include_router(users.router)
-
-
-# Code to remove the 422 response in the docs for specifics endpoints
-def custom_openapi():
-    endpoints_to_remove = [('/stock_market_data/{stock_symbol}', 'get')]
-    if not app.openapi_schema:
-        app.openapi_schema = get_openapi(
-            title=app.title,
-            version=app.version,
-            openapi_version=app.openapi_version,
-            description=app.description,
-            terms_of_service=app.terms_of_service,
-            contact=app.contact,
-            license_info=app.license_info,
-            routes=app.routes,
-            tags=app.openapi_tags,
-            servers=app.servers,
-        )
-        for endpoint_to_remove in endpoints_to_remove:
-            del app.openapi_schema.get('paths')[endpoint_to_remove[0]][endpoint_to_remove[1]]['responses']['422']
-    return app.openapi_schema
-
-
-app.openapi = custom_openapi
 
 
 if __name__ == '__main__':

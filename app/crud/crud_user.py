@@ -1,19 +1,25 @@
 import base64
+import hashlib
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from secrets import token_urlsafe
 from typing import Optional
 from sqlalchemy.orm import Session
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from app.models.user import User
 from app.schemas.user import UserSchema
 from app.config import settings
 
 
 def _encrypt_password(password: str) -> str:
-    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=settings.salt.encode(), iterations=390000)
-    key = base64.urlsafe_b64encode(kdf.derive(settings.secret_key.encode()))
-    return Fernet(key).encrypt(password.encode()).decode()
+    # Warning: ECB mode always encrypt a message in the same way if the key is the same
+    # But we cannot use other method, because we only have the api_key, so we don't know the user
+    # And without the user, we would have to compare all the api_keys in the database with the given api_key
+    key = hashlib.scrypt(settings.secret_key.encode(), salt=settings.salt.encode(), n=2**14, r=8, p=1, dklen=32)
+    encryptor = Cipher(algorithms.AES(key), modes.ECB()).encryptor()
+    try:
+        return base64.b64encode(encryptor.update(password.encode()) + encryptor.finalize()).decode()
+    except ValueError:
+        # This only happens when user write a short password, it doesn't happen in create_user
+        return ''
 
 
 def get_user_by_apikey(db: Session, api_key: str) -> Optional[User]:
