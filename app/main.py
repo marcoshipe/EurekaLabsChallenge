@@ -1,9 +1,17 @@
 import sys
+import logging
 import uvicorn
+from logging.config import dictConfig
 from fastapi import FastAPI
+from app.logging_conf import logging_conf
 from app.routers import stock_market_data, users
 from app.database.database import engine
 from app.database.setup_teardown import setup_db
+
+
+dictConfig(logging_conf)
+logger = logging.getLogger('default')
+logger.info('Starting the server')
 
 
 app_description = '''

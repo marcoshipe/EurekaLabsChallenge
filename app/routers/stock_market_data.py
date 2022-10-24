@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Response, status, Path, Depends, Header
 from sqlalchemy.orm import Session
 from app.api_integrations.alphavantage import get_stock_market_data
@@ -53,11 +54,17 @@ responses = {
 @router.get('/{stock_symbol}', responses=responses, summary='Get Stock Market Data')
 def get_stock_market_data_api(response: Response, stock_symbol: str = Path(example='IBM'), api_key: str = Header(),
                               db: Session = Depends(get_db)):
+    logger = logging.getLogger('default')
+    logger.info('Calling to stock_market_data with stock_symbol: %s', stock_symbol)
     if get_user_by_apikey(db, api_key) is None:
+        logger.info('    Unauthorized, invalid api_key')
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return {'detail': 'invalid api_key'}
     try:
-        return get_stock_market_data(stock_symbol)
+        result = get_stock_market_data(stock_symbol)
+        logger.info('    Result: %s', result)
+        return result
     except ApiCallException as e:
+        logger.exception('    There was a problem trying to get the stock market data')
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return {'detail': str(e)}

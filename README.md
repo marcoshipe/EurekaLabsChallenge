@@ -25,3 +25,5 @@ Problem definition: https://github.com/eurekalabs-io/challenges/blob/main/backen
 
 * To read the endpoint documentation and make calls to them (with the project container running): visit the webpage 
 http://127.0.0.1:8080/docs
+
+* The logs of the endpoints calls are saved in the folder `app/logs` in a maximum of 5 files of 100mb each. The logs of the server are saved in `app.log`, `app.log.1`, ... and the logs of the tests in `app_test.log`, `app_test.log.1`, ...

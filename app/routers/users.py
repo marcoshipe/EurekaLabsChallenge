@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database.database import get_db
@@ -22,7 +23,12 @@ responses = {
 
 @router.post('/', responses=responses, summary='Create User')
 def create_user_api(user: UserSchema, db: Session = Depends(get_db)):
+    logger = logging.getLogger('default')
+    logger.info('Calling to create user with user schema: %s', user)
     db_user = get_user_by_email(db, email=user.email)
     if db_user:
-        raise HTTPException(status_code=400, detail='Email already registered')
+        msg = 'Email already registered'
+        logger.info('    %s', msg)
+        raise HTTPException(status_code=400, detail=msg)
+    logger.info('    User created correctly')
     return {'api_key': create_user(db=db, user=user)}
