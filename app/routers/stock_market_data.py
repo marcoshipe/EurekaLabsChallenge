@@ -1,6 +1,9 @@
+import datetime
 import logging
+import redis
 from fastapi import APIRouter, Response, status, Path, Depends, Header
 from sqlalchemy.orm import Session
+from app.config import settings
 from app.api_integrations.alphavantage import get_stock_market_data
 from app.api_integrations.api_integration_exceptions import ApiCallException
 from app.crud.crud_user import get_user_by_apikey
@@ -42,6 +45,12 @@ responses = {
             'detail': 'invalid api_key'
         }}}
     },
+    429: {
+        'description': 'Too Many Requests',
+        'content': {'application/json': {'example': {
+            'detail': 'The limit of 10 requests per minute was exceeded'
+        }}}
+    },
     503: {
         'description': 'Service unavailable',
         'content': {'application/json': {'example': {
@@ -60,6 +69,18 @@ def get_stock_market_data_api(response: Response, stock_symbol: str = Path(examp
         logger.info('    Unauthorized, invalid api_key')
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return {'detail': 'invalid api_key'}
+
+    # Check throttling
+    cache = redis.Redis(host=settings.redis, port=6379)
+    if len(cache.keys(api_key+'sec*')) >= 1:
+        response.status_code = status.HTTP_429_TOO_MANY_REQUESTS
+        return {'details': 'The limit of 1 request per second was exceeded'}
+    if len(cache.keys(api_key+'min*')) >= 10:
+        response.status_code = status.HTTP_429_TOO_MANY_REQUESTS
+        return {'details': 'The limit of 10 requests per minute was exceeded'}
+    cache.set(api_key+'sec'+str(datetime.datetime.now().timestamp()), '', 1)
+    cache.set(api_key + 'min' + str(datetime.datetime.now().timestamp()), '', 60)
+
     try:
         result = get_stock_market_data(stock_symbol)
         logger.info('    Result: %s', result)

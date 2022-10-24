@@ -35,7 +35,7 @@ class TestMarketData:
         user = User(name='name', last_name='last_name', email='email', hashed_api_key='hashed_api_key')
         with (mock.patch(f'{stock_market_data}.get_stock_market_data', mock.Mock(return_value=expected_result)),
               mock.patch(f'{stock_market_data}.get_user_by_apikey', mock.Mock(return_value=user))):
-            response = self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test'})
+            response = self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test1'})
         assert response.status_code == 200
         assert response.json() == expected_result
 
@@ -45,13 +45,13 @@ class TestMarketData:
         with (mock.patch(f'{stock_market_data}.get_stock_market_data',
                          mock.Mock(side_effect=ApiCallException(exception_message))),
               mock.patch(f'{stock_market_data}.get_user_by_apikey', return_value=user)):
-            response = self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test'})
+            response = self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test2'})
         assert response.status_code == 503
         assert response.json() == {'detail': exception_message}
 
     @mock.patch(f'{stock_market_data}.get_user_by_apikey', mock.Mock(return_value=None))
     def test_unauthorized(self):
-        response = self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test'})
+        response = self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test3'})
         assert response.status_code == 401
         assert response.json() == {"detail": "invalid api_key"}
 
@@ -60,3 +60,11 @@ class TestMarketData:
         assert response.status_code == 422
         assert response.json() == {"detail": [{"loc": ["header", "api-key"], "msg":"field required",
                                                "type":"value_error.missing"}]}
+
+    def test_too_many_requests(self):
+        user = User(name='name', last_name='last_name', email='email', hashed_api_key='hashed_api_key')
+        with mock.patch(f'{stock_market_data}.get_user_by_apikey', mock.Mock(return_value=user)):
+            for i in range(10):
+                self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test4'})
+            response = self.client.get('/stock_market_data/TEST', headers={'api-key': 'api_key_test4'})
+        assert response.status_code == 429

@@ -15,6 +15,7 @@ services:
       - "8080:8000"
     depends_on:
       - db
+      - cache
 
   app_test:
     << : *app_template
@@ -23,6 +24,7 @@ services:
       - "8081:8000"
     depends_on:
       - db_test
+      - cache_test
 
   db_template: &db_template
     image: postgres:14.5-alpine
@@ -42,6 +44,19 @@ services:
       - postgres_data_test:/var/lib/postgresql/data/
     ports:
       - "5433:5432"
+
+  cache_template: &cache_template
+    image: redis:alpine
+
+  cache:
+    << : *cache_template
+    ports:
+      - '6379:6379'
+
+  cache_test:
+    <<: *cache_template
+    ports:
+      - '6380:6379'
 
 
 volumes:
