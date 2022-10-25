@@ -28,4 +28,4 @@ http://127.0.0.1:8080/docs
 
 * The logs of the endpoints calls are saved in the folder `app/logs` in a maximum of 5 files of 100mb each. The logs of the server are saved in `app.log`, `app.log.1`, ... and the logs of the tests in `app_test.log`, `app_test.log.1`, ...
 
-* A server to test the endpoints will be available in my raspberry pi (not 100% guaranteed because I'm traveling these days and I'm taking the raspberry with me) in: http://dinger.duckdns.org:8080/docs
+* A server to test the endpoints will be available in my raspberry pi (not 100% guaranteed because I'm traveling these days and I'm taking the raspberry with me) in: https://a7fc-45-173-17-217.sa.ngrok.io/docs
